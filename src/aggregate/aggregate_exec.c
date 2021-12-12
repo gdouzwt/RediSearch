@@ -190,12 +190,11 @@ void sendChunk(AREQ *req, RedisModuleCtx *outctx, size_t limit) {
 
   rc = rp->Next(rp, &r);
   long resultsLen = REDISMODULE_POSTPONED_ARRAY_LEN;
-  if (rc == RS_RESULT_TIMEDOUT && !(req->reqflags & QEXEC_F_IS_CURSOR) && !IsProfile(req) &&
-      RSGlobalConfig.timeoutPolicy == TimeoutPolicy_Fail) {
+  if (rc == RS_RESULT_TIMEDOUT && !(req->reqflags & QEXEC_F_IS_CURSOR) && !IsProfile(req)) {
     resultsLen = 1;
   } else if (rc == RS_RESULT_ERROR) {
     resultsLen = 2;
-  } else if (req->reqflags & QEXEC_F_IS_SEARCH && rc != RS_RESULT_TIMEDOUT) {
+  } else if (req->reqflags & QEXEC_F_IS_SEARCH) {
     PLN_ArrangeStep *arng = AGPLN_GetArrangeStep(&req->ap);
     size_t reqLimit = arng && arng->isLimited? arng->limit : DEFAULT_LIMIT;
     size_t reqOffset = arng && arng->isLimited? arng->offset : 0;
@@ -211,7 +210,6 @@ void sendChunk(AREQ *req, RedisModuleCtx *outctx, size_t limit) {
         RSGlobalConfig.timeoutPolicy == TimeoutPolicy_Fail) {
       RedisModule_ReplyWithSimpleString(outctx, "Timeout limit was reached");
     } else {
-      rc = RS_RESULT_OK;
       RedisModule_ReplyWithLongLong(outctx, req->qiter.totalResults);
     }
   } else if (rc == RS_RESULT_ERROR) {
