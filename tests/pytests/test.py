@@ -2126,7 +2126,10 @@ def testTimeoutOnSorter(env):
     pl.execute()
 
     res = env.cmd('ft.search', 'idx', '*', 'SORTBY', 'n', 'DESC')
+    # The search is slow and we expect to timeout while iterating result
+    # number of result expect to be lower than the number of documents.
     env.assertGreater(elements, res[0])
+    env.assertLessEqual(len(res), 21)
 
 def testAlias(env):
     conn = getConnectionByEnv(env)

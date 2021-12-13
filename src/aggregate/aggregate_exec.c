@@ -206,11 +206,9 @@ void sendChunk(AREQ *req, RedisModuleCtx *outctx, size_t limit) {
   RedisModule_ReplyWithArray(outctx, resultsLen);
 
   if (rc == RS_RESULT_TIMEDOUT) {
-    if (!(req->reqflags & QEXEC_F_IS_CURSOR) && !IsProfile(req) &&
-        RSGlobalConfig.timeoutPolicy == TimeoutPolicy_Fail) {
+    RS_LOG_ASSERT(RSGlobalConfig.timeoutPolicy == TimeoutPolicy_Fail, "Policy return returns change sorter to yield");
+    if (!(req->reqflags & QEXEC_F_IS_CURSOR) && !IsProfile(req)) {
       RedisModule_ReplyWithSimpleString(outctx, "Timeout limit was reached");
-    } else {
-      RedisModule_ReplyWithLongLong(outctx, req->qiter.totalResults);
     }
   } else if (rc == RS_RESULT_ERROR) {
     RedisModule_ReplyWithLongLong(outctx, req->qiter.totalResults);
